@@ -26,41 +26,29 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-southeast-1
+          aws-region: us-east-1
 
       - name: Login to AWS ECR
         id: ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
       - name: Build Docker image
         run: |
-          docker build -t zongdev-${{ matrix.service }} ./Microservices/${{ matrix.service }}
+          docker build -t devops2-g4-${{ matrix.service }}-prod ./Microservices/${{ matrix.service }}
 
       - name: Ensure ECR repository exists
         run: |
-          aws ecr describe-repositories --repository-names zongdev-${{ matrix.service }} || \
-          aws ecr create-repository --repository-name zongdev-${{ matrix.service }}
+          aws ecr describe-repositories --repository-names devops2-g4-${{ matrix.service }}-prod
 
-      - name: Tag & Push Images (ECR + DockerHub)
+      - name: Tag & Push Images
         run: |
           VERSION="1.0.0"
 
-          # DockerHub image
-          HUB_IMAGE="songhieng2k25/zongdev-${{ matrix.service }}:${VERSION}"
-
           # AWS ECR image
-          ECR_IMAGE="${{ steps.ecr.outputs.registry }}/zongdev-${{ matrix.service }}:${VERSION}"
+          ECR_IMAGE="${{ steps.ecr.outputs.registry }}/devops2-g4-${{ matrix.service }}-prod:${VERSION}"
 
           # Tag images
-          docker tag zongdev-${{ matrix.service }} $HUB_IMAGE
-          docker tag zongdev-${{ matrix.service }} $ECR_IMAGE
+          docker tag devops2-g4-${{ matrix.service }}-prod $ECR_IMAGE
 
           # Push images
-          docker push $HUB_IMAGE
           docker push $ECR_IMAGE
