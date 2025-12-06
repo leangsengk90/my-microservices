@@ -14,7 +14,8 @@ jobs:
           - auth
           - profile
           - messenger
-          - finance
+          #- finance
+          #- share
 
     steps:
       - name: Checkout code
