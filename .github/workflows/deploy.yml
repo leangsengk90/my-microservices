@@ -42,7 +42,7 @@ jobs:
 
       - name: Tag & Push Images
         run: |
-          VERSION="1.0.0"
+          VERSION="${{ github.run_number }}"
 
           # AWS ECR image
           ECR_IMAGE="${{ steps.ecr.outputs.registry }}/devops2-g4-${{ matrix.service }}-prod:${VERSION}"
