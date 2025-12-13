@@ -2,7 +2,7 @@ name: Build & Push Microservices
 
 on:
   push:
-    branches: ["main"]
+    branches: ["preprod"]
 
 jobs:
   deploy:
@@ -34,21 +34,21 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t devops2-g4-${{ matrix.service }}-prod ./Microservices/${{ matrix.service }}
+          docker build -t devops2-g4-${{ matrix.service }}-preprod ./Microservices/${{ matrix.service }}
 
       - name: Ensure ECR repository exists
         run: |
-          aws ecr describe-repositories --repository-names devops2-g4-${{ matrix.service }}-prod
+          aws ecr describe-repositories --repository-names devops2-g4-${{ matrix.service }}-preprod
 
       - name: Tag & Push Images
         run: |
           VERSION="${{ github.run_number }}"
 
           # AWS ECR image
-          ECR_IMAGE="${{ steps.ecr.outputs.registry }}/devops2-g4-${{ matrix.service }}-prod:${VERSION}"
+          ECR_IMAGE="${{ steps.ecr.outputs.registry }}/devops2-g4-${{ matrix.service }}-preprod:${VERSION}"
 
           # Tag images
-          docker tag devops2-g4-${{ matrix.service }}-prod $ECR_IMAGE
+          docker tag devops2-g4-${{ matrix.service }}-preprod $ECR_IMAGE
 
           # Push images
           docker push $ECR_IMAGE
