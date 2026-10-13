@@ -16,6 +16,8 @@ public class HealthController {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("service", "finance");
         body.put("status", "UP");
+        String version = System.getenv("APP_VERSION");
+        body.put("version", version == null || version.isEmpty() ? "dev" : version);
         body.put("runtime", "Java " + System.getProperty("java.version"));
         body.put("hostname", hostname());
         body.put("uptimeSeconds", ManagementFactory.getRuntimeMXBean().getUptime() / 1000);

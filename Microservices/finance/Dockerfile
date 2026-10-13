@@ -12,4 +12,8 @@ COPY source_code/src ./src
 
 RUN mvn clean package -DskipTests
 
+# Build number shown on the home page (set by CI with --build-arg)
+ARG APP_VERSION=dev
+ENV APP_VERSION=$APP_VERSION
+
 CMD ["java", "-jar", "target/finance-0.0.1-SNAPSHOT.jar"]

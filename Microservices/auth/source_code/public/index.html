@@ -162,6 +162,7 @@
   footer { border-top: 1px solid var(--border); padding: 32px 0 44px; color: var(--dim); font-size: 13.5px; }
   footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
   footer code { font-family: var(--mono); color: var(--muted); }
+  footer .version { color: var(--text); font-weight: 600; }
 
   .toast {
     position: fixed; bottom: 24px; left: 50%; transform: translate(-50%, 120px); z-index: 100;
@@ -217,7 +218,7 @@
 
 <header>
   <div class="wrap nav">
-    <a class="brand" href="/"><span class="brand-mark">🔐</span> MyApp <small>/ Auth</small></a>
+    <a class="brand" id="brand" href="/"><span class="brand-mark">🔐</span> MyApp <small>/ Auth</small></a>
     <nav class="svc-nav" id="svc-nav" aria-label="Services"></nav>
   </div>
 </header>
@@ -312,7 +313,7 @@
 <footer>
   <div class="wrap">
     <span>Auth Service · Node.js 18 · container port <code>3000</code> → host <code>8001</code></span>
-    <span>Part of the MyApp microservices platform</span>
+    <span>Part of the MyApp microservices platform · Version: <b class="version" id="app-version">…</b></span>
   </div>
 </footer>
 
@@ -328,17 +329,28 @@
     { id: "share", name: "Share", hostPort: 8005, appPort: 3004 },
   ];
 
-  // Service switcher. Links default to the same host on the other service's port:
-  // docker-compose host ports (8001-8005) or, when run directly, the app ports.
+  // Path this page is served under: "" locally, "/auth" behind the API Gateway
+  // (which strips the prefix before forwarding). All requests are made relative to it.
+  const BASE = location.pathname.replace(/\/(index\.html)?$/, "");
+  document.getElementById("brand").href = BASE + "/";
+
+  // Service switcher:
+  //  - behind a gateway (page at .../auth): sibling paths on the same origin, e.g. .../share
+  //  - otherwise: same host on the other service's port, either docker-compose host
+  //    ports (8001-8005) or, when run directly, the app ports.
   // Set AUTH_URL, PROFILE_URL, ... on a service to override (returned by /health).
   const self = SERVICES.find(s => s.id === SERVICE);
+  const gatewayRoot = BASE.endsWith("/" + SERVICE) ? BASE.slice(0, -SERVICE.length - 1) : null;
   const portKey = location.port === String(self.appPort) ? "appPort" : "hostPort";
+  const serviceUrl = s => gatewayRoot !== null
+    ? `${location.origin}${gatewayRoot}/${s.id}`
+    : `${location.protocol}//${location.hostname}:${s[portKey]}/`;
   const nav = document.getElementById("svc-nav");
   SERVICES.forEach(s => {
     const a = document.createElement("a");
     a.textContent = s.name;
     a.dataset.id = s.id;
-    a.href = s.id === SERVICE ? "/" : `${location.protocol}//${location.hostname}:${s[portKey]}/`;
+    a.href = s.id === SERVICE ? BASE + "/" : serviceUrl(s);
     if (s.id === SERVICE) a.className = "active";
     nav.appendChild(a);
   });
@@ -375,7 +387,7 @@
   async function loadHealth() {
     const t0 = performance.now();
     try {
-      const res = await fetch("/health", { cache: "no-store" });
+      const res = await fetch(BASE + "/health", { cache: "no-store" });
       const data = await res.json();
       const ms = Math.round(performance.now() - t0);
       const up = data.status === "UP";
@@ -387,6 +399,7 @@
       document.getElementById("st-host").title = data.hostname;
       document.getElementById("st-latency").textContent = ms + " ms";
       applyLinks(data.links);
+      document.getElementById("app-version").textContent = data.version || "dev";
       uptimeBase = typeof data.uptimeSeconds === "number" ? data.uptimeSeconds : null;
       fetchedAt = Date.now();
       if (uptimeBase === null) document.getElementById("st-uptime").textContent = "n/a";
@@ -416,7 +429,7 @@
     out.innerHTML = `<span class="c">// Sending GET ${ep} …</span>`;
     const t0 = performance.now();
     try {
-      const res = await fetch(ep, { cache: "no-store" });
+      const res = await fetch(BASE + ep, { cache: "no-store" });
       const ms = Math.round(performance.now() - t0);
       const type = res.headers.get("content-type") || "";
       let body = await res.text();

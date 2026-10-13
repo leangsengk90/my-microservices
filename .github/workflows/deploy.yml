@@ -34,7 +34,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t devops2-g4-${{ matrix.service }}-prod ./Microservices/${{ matrix.service }}
+          docker build --build-arg APP_VERSION=${{ github.run_number }} -t devops2-g4-${{ matrix.service }}-prod ./Microservices/${{ matrix.service }}
 
       - name: Ensure ECR repository exists
         run: |

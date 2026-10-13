@@ -37,6 +37,7 @@ switch ($path) {
         echo json_encode([
             'service' => 'share',
             'status' => 'UP',
+            'version' => getenv('APP_VERSION') ?: 'dev',
             'runtime' => 'PHP ' . PHP_VERSION,
             'hostname' => gethostname(),
             'uptimeSeconds' => uptime_seconds(),

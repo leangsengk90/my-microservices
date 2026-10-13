@@ -14,4 +14,8 @@ COPY source_code/ .
 EXPOSE 3000
 
 # Define the command to run your app
+# Build number shown on the home page (set by CI with --build-arg)
+ARG APP_VERSION=dev
+ENV APP_VERSION=$APP_VERSION
+
 CMD ["node", "index.js"]

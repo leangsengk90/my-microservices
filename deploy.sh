@@ -8,7 +8,7 @@ REGISTRY_URL="songhieng2k25/zongdev"
 
 for SERVICE in "${SERVICES[@]}"; do
   echo "Building $SERVICE..."
-  docker build -t $REGISTRY_URL-$SERVICE:$TAG_VERSION ./Microservices/$SERVICE
+  docker build --build-arg APP_VERSION=$TAG_VERSION -t $REGISTRY_URL-$SERVICE:$TAG_VERSION ./Microservices/$SERVICE
   if [ $? -ne 0 ]; then
     echo "Build failed for $SERVICE. Exiting..."
     exit 1

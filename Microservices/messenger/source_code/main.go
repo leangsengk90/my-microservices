@@ -38,10 +38,15 @@ func homeHandler(page []byte) http.HandlerFunc {
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	hostname, _ := os.Hostname()
+	version := os.Getenv("APP_VERSION")
+	if version == "" {
+		version = "dev"
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"service":       "messenger",
 		"status":        "UP",
+		"version":       version,
 		"runtime":       "Go " + runtime.Version()[2:],
 		"hostname":      hostname,
 		"uptimeSeconds": int(time.Since(startTime).Seconds()),

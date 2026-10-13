@@ -23,6 +23,7 @@ http.createServer((req, res) => {
     res.end(JSON.stringify({
       service: 'auth',
       status: 'UP',
+      version: process.env.APP_VERSION || 'dev',
       runtime: `Node.js ${process.version}`,
       hostname: os.hostname(),
       uptimeSeconds: Math.floor(process.uptime()),

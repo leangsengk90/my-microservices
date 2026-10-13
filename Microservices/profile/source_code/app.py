@@ -24,6 +24,7 @@ def health():
     return jsonify(
         service='profile',
         status='UP',
+        version=os.environ.get('APP_VERSION') or 'dev',
         runtime=f'Python {platform.python_version()}',
         hostname=socket.gethostname(),
         uptimeSeconds=int(time.time() - START_TIME),
