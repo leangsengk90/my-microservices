@@ -25,3 +25,14 @@ docker-compose up --build
   Messenger http://localhost:8003
   Finance   http://localhost:8004
   Share     http://localhost:8005
+
++ Menu links between services
+  By default the menu links to the same host on each service's port (8001-8005,
+  or 3000/3001/3002/8080/3004 when the services run directly).
+  Behind a domain or load balancer, set the public URLs on each service, e.g.:
+    environment:
+      AUTH_URL: https://auth.example.com
+      PROFILE_URL: https://profile.example.com
+      MESSENGER_URL: https://messenger.example.com
+      FINANCE_URL: https://finance.example.com
+      SHARE_URL: https://share.example.com

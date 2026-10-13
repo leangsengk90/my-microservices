@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Share Service · ZongDev</title>
+<title>Share Service · MyApp</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📤</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -218,7 +218,7 @@
 
 <header>
   <div class="wrap nav">
-    <a class="brand" href="/"><span class="brand-mark">📤</span> ZongDev <small>/ Share</small></a>
+    <a class="brand" href="/"><span class="brand-mark">📤</span> MyApp <small>/ Share</small></a>
     <nav class="svc-nav" id="svc-nav" aria-label="Services"></nav>
   </div>
 </header>
@@ -244,8 +244,8 @@
         <span>Files stay in your browser in this demo</span>
       </label>
       <div class="files" id="files">
-        <div class="file"><i class="ft pdf">PDF</i><div class="fm"><b>Q3-report.pdf</b><span>2.4 MB · shared 2h ago</span></div><button type="button" class="btn copy" data-link="zong.dev/s/q3r7Xk">Copy link</button></div>
-        <div class="file"><i class="ft img">IMG</i><div class="fm"><b>architecture.png</b><span>860 KB · shared yesterday</span></div><button type="button" class="btn copy" data-link="zong.dev/s/arc9Lm">Copy link</button></div>
+        <div class="file"><i class="ft pdf">PDF</i><div class="fm"><b>Q3-report.pdf</b><span>2.4 MB · shared 2h ago</span></div><button type="button" class="btn copy" data-link="myapp.io/s/q3r7Xk">Copy link</button></div>
+        <div class="file"><i class="ft img">IMG</i><div class="fm"><b>architecture.png</b><span>860 KB · shared yesterday</span></div><button type="button" class="btn copy" data-link="myapp.io/s/arc9Lm">Copy link</button></div>
       </div>
     </div>
   </div>
@@ -307,7 +307,7 @@
 <footer>
   <div class="wrap">
     <span>Share Service · PHP 8.1 · container port <code>3004</code> → host <code>8005</code></span>
-    <span>Part of the ZongDev microservices platform</span>
+    <span>Part of the MyApp microservices platform</span>
   </div>
 </footer>
 
@@ -316,22 +316,33 @@
 <script>
   const SERVICE = "share";
   const SERVICES = [
-    { id: "auth", name: "Auth", port: 8001 },
-    { id: "profile", name: "Profile", port: 8002 },
-    { id: "messenger", name: "Messenger", port: 8003 },
-    { id: "finance", name: "Finance", port: 8004 },
-    { id: "share", name: "Share", port: 8005 },
+    { id: "auth", name: "Auth", hostPort: 8001, appPort: 3000 },
+    { id: "profile", name: "Profile", hostPort: 8002, appPort: 3001 },
+    { id: "messenger", name: "Messenger", hostPort: 8003, appPort: 3002 },
+    { id: "finance", name: "Finance", hostPort: 8004, appPort: 8080 },
+    { id: "share", name: "Share", hostPort: 8005, appPort: 3004 },
   ];
 
-  // Service switcher (host ports from docker-compose.yml)
+  // Service switcher. Links default to the same host on the other service's port:
+  // docker-compose host ports (8001-8005) or, when run directly, the app ports.
+  // Set AUTH_URL, PROFILE_URL, ... on a service to override (returned by /health).
+  const self = SERVICES.find(s => s.id === SERVICE);
+  const portKey = location.port === String(self.appPort) ? "appPort" : "hostPort";
   const nav = document.getElementById("svc-nav");
   SERVICES.forEach(s => {
     const a = document.createElement("a");
     a.textContent = s.name;
-    a.href = s.id === SERVICE ? "/" : `${location.protocol}//${location.hostname}:${s.port}/`;
+    a.dataset.id = s.id;
+    a.href = s.id === SERVICE ? "/" : `${location.protocol}//${location.hostname}:${s[portKey]}/`;
     if (s.id === SERVICE) a.className = "active";
     nav.appendChild(a);
   });
+  function applyLinks(links) {
+    if (!links) return;
+    nav.querySelectorAll("a").forEach(a => {
+      if (a.dataset.id !== SERVICE && links[a.dataset.id]) a.href = links[a.dataset.id];
+    });
+  }
 
   function toast(msg) {
     const t = document.getElementById("toast");
@@ -370,6 +381,7 @@
       document.getElementById("st-host").textContent = data.hostname;
       document.getElementById("st-host").title = data.hostname;
       document.getElementById("st-latency").textContent = ms + " ms";
+      applyLinks(data.links);
       uptimeBase = typeof data.uptimeSeconds === "number" ? data.uptimeSeconds : null;
       fetchedAt = Date.now();
       if (uptimeBase === null) document.getElementById("st-uptime").textContent = "n/a";
@@ -455,7 +467,7 @@
           row.querySelector("span").textContent = `${size(f.size)} · shared just now`;
           const btn = row.querySelector(".copy");
           btn.disabled = false;
-          btn.dataset.link = "zong.dev/s/" + slug();
+          btn.dataset.link = "myapp.io/s/" + slug();
           toast(`🔗 ${f.name} is ready to share`);
         }
       }, 120);

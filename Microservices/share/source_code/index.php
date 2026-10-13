@@ -13,6 +13,18 @@ function uptime_seconds() {
     return max(0, (int) ((float) $sys - $startTicks / 100));
 }
 
+// Optional public URLs of the other services for the home page menu, e.g. AUTH_URL=https://auth.example.com
+function links() {
+    $links = new stdClass();
+    foreach (['auth', 'profile', 'messenger', 'finance', 'share'] as $s) {
+        $url = getenv(strtoupper($s) . '_URL');
+        if ($url) {
+            $links->$s = $url;
+        }
+    }
+    return $links;
+}
+
 switch ($path) {
     case '/':
     case '/index.php':
@@ -29,6 +41,7 @@ switch ($path) {
             'hostname' => gethostname(),
             'uptimeSeconds' => uptime_seconds(),
             'timestamp' => gmdate('c'),
+            'links' => links(),
         ]);
         break;
 

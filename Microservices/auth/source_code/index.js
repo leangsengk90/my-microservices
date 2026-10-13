@@ -6,6 +6,12 @@ const path = require('path');
 const PORT = 3000;
 const page = fs.readFileSync(path.join(__dirname, 'public', 'index.html'));
 
+// Optional public URLs of the other services for the home page menu, e.g. PROFILE_URL=https://profile.example.com
+const SERVICES = ['auth', 'profile', 'messenger', 'finance', 'share'];
+const links = Object.fromEntries(
+  SERVICES.filter(s => process.env[`${s.toUpperCase()}_URL`]).map(s => [s, process.env[`${s.toUpperCase()}_URL`]])
+);
+
 http.createServer((req, res) => {
   const url = req.url.split('?')[0];
 
@@ -21,6 +27,7 @@ http.createServer((req, res) => {
       hostname: os.hostname(),
       uptimeSeconds: Math.floor(process.uptime()),
       timestamp: new Date().toISOString(),
+      links,
     }));
   } else if (url === '/api/hello') {
     res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });

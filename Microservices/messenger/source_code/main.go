@@ -7,10 +7,23 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 )
 
 var startTime = time.Now()
+
+// links holds optional public URLs of the other services for the home page menu,
+// e.g. AUTH_URL=https://auth.example.com
+func links() map[string]string {
+	out := map[string]string{}
+	for _, s := range []string{"auth", "profile", "messenger", "finance", "share"} {
+		if v := os.Getenv(strings.ToUpper(s) + "_URL"); v != "" {
+			out[s] = v
+		}
+	}
+	return out
+}
 
 func homeHandler(page []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -33,6 +46,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 		"hostname":      hostname,
 		"uptimeSeconds": int(time.Since(startTime).Seconds()),
 		"timestamp":     time.Now().UTC().Format(time.RFC3339),
+		"links":         links(),
 	})
 }
 
